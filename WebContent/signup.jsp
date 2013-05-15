@@ -61,11 +61,6 @@
         	//System.out.println("In Sign up");
             // Begin transaction
             conn.setAutoCommit(false);
-
-            String str = (String) session.getAttribute("user");
-            if (str != ""){
-              out.println("Hello " + str);
-            }
             
             // Create the prepared statement and use it to
             // INSERT student values INTO the students table.

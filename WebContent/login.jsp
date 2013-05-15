@@ -55,8 +55,10 @@
             }
             else{
             	String username = result.getString("username");
+            	String role = result.getString("role");
             	out.println("Hello " + username);
             	session.setAttribute("user", username);
+            	session.setAttribute("role", role);
             }
             
             // Commit transaction

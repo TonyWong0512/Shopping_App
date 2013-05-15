@@ -1,7 +1,7 @@
 <% 
-	String str = (String) session.getAttribute("user");
-    if (str != null){
-      out.println("Hello " + str);
+	String user = (String) session.getAttribute("user");
+    if (user != null){
+      out.println("Hello " + user);
     }
             
 %>
