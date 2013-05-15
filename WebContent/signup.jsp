@@ -6,6 +6,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <%-- Import the java.sql package --%>
 <%@ page import="java.sql.*"%>
+<!--  Include the UserInfo page -->
+<jsp:include page="userinfo.jsp" />
+
 <title>Sign-up</title>
 </head>
 <body>
@@ -55,10 +58,15 @@
         String action = request.getParameter("signedup");
         // Check if an insertion is requested
         if (action != null && action.equals("yes")) {
-        	System.out.println("In Sign up");
+        	//System.out.println("In Sign up");
             // Begin transaction
             conn.setAutoCommit(false);
 
+            String str = (String) session.getAttribute("user");
+            if (str != ""){
+              out.println("Hello " + str);
+            }
+            
             // Create the prepared statement and use it to
             // INSERT student values INTO the students table.
             query = conn
@@ -85,7 +93,7 @@
     <%-- -------- Error catching ---------- --%>
     <%
      } catch (SQLException e) {
-    	 System.out.println("In catch");
+    	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
         throw new RuntimeException(e);
@@ -93,7 +101,7 @@
     finally {
         // Release resources in a finally block in reverse-order of
         // their creation
-		System.out.println("In finally");
+		//System.out.println("In finally");
         if (query != null) {
             try {
                 query.close();

@@ -6,6 +6,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <%-- Import the java.sql package --%>
 <%@ page import="java.sql.*"%>
+<!--  Include the UserInfo page -->
+<jsp:include page="userinfo.jsp" />
 <title>Login Page</title>
 </head>
 <body>
@@ -34,25 +36,27 @@
      %>
     <%-- -------- INSERT Code -------- --%>
     <%
-        String action = request.getParameter("signedup");
+        String action = request.getParameter("loggedin");
         // Check if an insertion is requested
         if (action != null && action.equals("yes")) {
-        	System.out.println("In Sign up");
+        	//System.out.println("In Sign up");
             // Begin transaction
             conn.setAutoCommit(false);
 
             // Create the prepared statement and use it to
             // INSERT student values INTO the students table.
             query = conn
-            .prepareStatement("SELECT username, role FROM users WHERE username=\"" + request.getParameter("username") + "\"");
+            .prepareStatement("SELECT username, role FROM users WHERE username='" + request.getParameter("username") + "'");
             result = query.executeQuery();
-            int rowCount = result.size();
             
-            if (rowCount == 0){
+            
+            if ( !result.next() ){
             	out.println("Sorry, " + request.getParameter("username") + " is not registered. Please sign up.");
             }
             else{
-            	out.println("Hello" + rs[0]);
+            	String username = result.getString("username");
+            	out.println("Hello " + username);
+            	session.setAttribute("user", username);
             }
             
             // Commit transaction
@@ -68,7 +72,7 @@
     <%-- -------- Error catching ---------- --%>
     <%
      } catch (SQLException e) {
-    	 System.out.println("In catch");
+    	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
         throw new RuntimeException(e);
@@ -76,7 +80,7 @@
     finally {
         // Release resources in a finally block in reverse-order of
         // their creation
-		System.out.println("In finally");
+		//System.out.println("In finally");
         if (query != null) {
             try {
                 query.close();
