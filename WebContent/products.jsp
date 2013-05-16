@@ -58,10 +58,10 @@
 	    	</ul>
     	</div>
     
-    	<form action="confirmation.jsp" method="post">
+    	<form action="confirmAdd.jsp" method="post">
 		<label>Product Name: <input type="text" name="product_name" value="" /></label>
 		<br />
-		<label>SKU: <input type="text" name="product_name" value="" /></label>
+		<label>SKU: <input type="text" name="sku" value="" /></label>
 		<br />
 		<label>Category:
 		<select name="category">
@@ -77,7 +77,7 @@
           </select>
 		</label>
 		<br />
-		<label>Price: <input type="text" name="product_name" value="" /></label>
+		<label>Price: <input type="text" name="price" value="" /></label>
 		<br />
 		<input type="hidden" name="action" value="insertProduct" />
 		<input type="submit" value="Add Product" />
