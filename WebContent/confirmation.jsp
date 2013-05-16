@@ -48,8 +48,8 @@
             conn.setAutoCommit(false);
             
             Statement statement = conn.createStatement();
-            //result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
-            result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='hi'");
+            result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
+            //result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='hi'");
 
 	%>
 	<%
@@ -79,8 +79,12 @@
 			
 			
 	<%
-			PreparedStatement query = conn.prepareStatement("DELETE FROM shopping_cart AS sc WHERE sc.buyer="+ userID );
-					
+			/*String userID = request.getParameter("userID");
+			if ( userID != null ){
+				int uID = Integer.parseInt(userID);
+				PreparedStatement q = conn.prepareStatement("DELETE FROM shopping_cart AS sc WHERE sc.buyer="+ uID );
+				q.executeUpdate();
+			}*/
 			
 			
             // Commit transaction
