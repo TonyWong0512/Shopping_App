@@ -112,7 +112,7 @@
     	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
-        throw new RuntimeException(e);
+    	 out.println("Sorry, something went wrong. Insert did not work.");
     }
     finally {
         // Release resources in a finally block in reverse-order of

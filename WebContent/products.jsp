@@ -21,7 +21,7 @@
      ResultSet result = null;
      
      try {
-         if (true || session.getAttribute("role") == "Owner") {
+         if (session.getAttribute("role") == "Owner") {
          // Registering Postgresql JDBC driver with the DriverManager
          Class.forName("org.postgresql.Driver");
 
@@ -134,18 +134,13 @@
     	          		while (result.next()){
     	          	%>
     	          	<form action="products.jsp" method="POST">
-                    <input type="hidden" name="action" value="update"/>
                     <input type="hidden" name="id" value="<%=result.getInt("id")%>"/>
     	          		<tr>
     	          			<td><input name="name" value='<%=result.getString("name")%>'></td>
     	          			<td><input name="sku" value='<%=result.getInt("sku")%>'></td>
     	          			<td><input name="price" value='<%=result.getDouble("price")%>'></td>
-    	          			<td><input type="submit" value="Update"></td>
-	    	          		<form action="students.jsp" method="POST">
-			                    <input type="hidden" name="action" value="delete"/>
-			                    <input type="hidden" name="id" value='<%=result.getInt("id")%>' />
-			                <td><input type="submit" value="Delete"/></td>
-			                </form>
+    	          			<td><input type="submit" name="action" value="Update"></td>
+			               	<td><input type="submit" name="action" value="Delete"/></td>
 			             </tr>
     	          	</form>	
     	          	<%	
@@ -160,7 +155,7 @@
     	/***************** End Displaying Table of Products *********************/
     	/****************** Begin Update and Delete For Table of Products ****************/
     	String action = request.getParameter("action");
-    	  if ( action != null && action.equals("update") ){
+    	  if ( action != null && action.equals("Update") ){
     		// Begin transaction
               conn.setAutoCommit(false);
 
@@ -177,7 +172,7 @@
               int rowCount = statement.executeUpdate();
     		  
     	  }
-    	  else if ( action != null && action.equals("delete") ){
+    	  else if ( action != null && action.equals("Delete") ){
     		// Begin transaction
               conn.setAutoCommit(false);
 
@@ -222,7 +217,7 @@
     	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
-        throw new RuntimeException(e);
+        out.println("Sorry, something went wrong.");
     }
     finally {
         // Release resources in a finally block in reverse-order of

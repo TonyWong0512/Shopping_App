@@ -17,7 +17,10 @@
 		    <input type="hidden" name="searchingin" value="yes" />
 		    <input type="submit" value="Search" />
 	        </form>
-	
+	   </table>
+        </td>
+    </tr>
+</table>
             <%-- -------- Open Connection Code -------- --%>
             <%
             
@@ -59,35 +62,18 @@
             
             %>
            
-			<table>
-    	          	<tr>
-    	          		<th>Name</th>
-    	          		<th>SKU</th>
-    	          		<th>Price</th>
-    	          	</tr>
+			<ul>
+			<h3>Products available for purchase:</h3>
 
     	          	
     	          	<%    	          			
     	          		while (result.next()){
     	          	%>
-    	          	<form action="products_order.jsp" method="POST">
-                    <input type="hidden" name="id" value="<%=result.getInt("id")%>"/>
-    	          		<tr>
-    	          			<td><input name="name" value='<%=result.getString("name")%>'></td>
-    	          			<td><input name="sku" value='<%=result.getInt("sku")%>'></td>
-    	          			<td><input name="price" value='<%=result.getDouble("price")%>'></td>
-	    	          		<form action="products.jsp" method="POST">
-			                    <input type="hidden" name="action" value="add"/>
-			                    <input type="hidden" name="id" value='<%=result.getInt("id")%>' />
-			                <td><input type="submit" value="Add"/></td>
-			                </form>
-			             </tr>
-    	          	</form>	
+    	          		<li><a href="products_order.jsp?product=<%=result.getInt("id")%>"><%=result.getString("name")%></a></li>
     	          	<%	
     	          		}
     	          	%>
-    	          	</table>
-            
+            </ul>
             
 
             <%-- -------- Close Connection Code -------- --%>
@@ -104,7 +90,7 @@
 
                 // Wrap the SQL exception in a runtime exception to propagate
                 // it upwards
-                throw new RuntimeException(e);
+            	 out.println("Sorry, something went wrong. Insert did not work.");
             }
             finally {
                 // Release resources in a finally block in reverse-order of
@@ -130,10 +116,6 @@
                 }
             }
             %>
-        </table>
-        </td>
-    </tr>
-</table>
 </body>
 
 </html>

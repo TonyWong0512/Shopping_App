@@ -30,7 +30,7 @@
             
             <%-- -------- INSERT Code -------- --%>
             <%
-                String action = request.getParameter("action");
+                /*String action = request.getParameter("action");
                 // Check if an insertion is requested
 
                 if (action != null && action.equals("insert")) {
@@ -51,29 +51,43 @@
                     conn.commit();
                     conn.setAutoCommit(true);
                     pstmt.close();
-                }
+                }*/
             %>
+             <%
+	            Statement stm = conn.createStatement();
+	            rs = stm.executeQuery("SELECT id FROM users WHERE username='"+ session.getAttribute("user") +"'");
+	            int userID = 0;
+	            if (rs.next())
+	            	userID = rs.getInt("id");
             
+            	String adding = (String)request.getParameter("adding");
+            	if (adding != null && adding.equals("add")){
+            		try{
+            		PreparedStatement state = conn.prepareStatement("INSERT INTO shopping_cart (buyer, productID, quantity) VALUES (?, ?, ?)");
+                            state.setInt(1, userID);
+                            state.setInt(2, Integer.parseInt(request.getParameter("id")));
+                            state.setInt(3, Integer.parseInt(request.getParameter("quantity")));
+                            int rowCount = state.executeUpdate();
+            		}
+            		catch(SQLException e){
+            			out.println("Sorry, the item you would like to add is not available anymore.");
+            		}
+            	}
+      
+            %>
             <%-- -------- SELECT Statement Code -------- --%>
             <%
+            
                 // Create the statement
-                Statement statement = conn.createStatement();
-
-                // Use the created statement to SELECT
-                // the student attributes FROM the Student table.
-                rs = statement.executeQuery("SELECT * FROM products ");
+                if ( request.getParameter("product") != null ){
+	                Statement statement = conn.createStatement();
+	
+	                // Use the created statement to SELECT
+	                // the student attributes FROM the Student table.
+	                rs = statement.executeQuery("SELECT * FROM products WHERE id=" + Integer.parseInt(request.getParameter("product")) );
             %>
             
-            <!-- Add an HTML table header row to format the results -->
-            <table>
-              <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </table>
-            
-            
+
 			<table>
     	          	<tr>
     	          		<th>Name</th>
@@ -86,58 +100,55 @@
     	          		while (rs.next()){
     	          	%>
     	          	<form action="products_order.jsp" method="POST">
-                    <input type="hidden" name="id" value="<%=rs.getInt("id")%>"/>
     	          		<tr>
     	          			<td><input name="name" disabled = "disabled" value='<%=rs.getString("name")%>'></td>
     	          			<td><input name="price" disabled = "disabled" value='<%=rs.getDouble("price")%>'></td>
-    	          			<td><input name="quantity" type="text" value=0 ></td>
-	    	          		<form action="products.jsp" method="POST">
-			                    <input type="hidden" name="action" value="add"/>
-			                    <input type="hidden" name="id" value='<%=rs.getInt("id")%>' />
-			                <td><input type="submit" value="Add to Cart"/></td>
-			                </form>
+    	          			<td><input name="quantity" type="text" value="0" ></td>
+				             <input type="hidden" name="adding" value="add"/>
+				             <input type="hidden" name="id" value='<%=rs.getInt("id")%>' />
+				             <input type="hidden" name="product" value="<%=request.getParameter("product") %>" />;
+ 				             <td><input type="submit" value="Add to Cart"/></td>
 			             </tr>
     	          	</form>	
     	          	<%	
     	          		}
     	          	%>
     	          	</table>
-
-
-            <%-- -------- Iteration Code -------- --%>
-            <%
-                // Iterate over the ResultSet
-                while (rs.next()) {
-            %>
-
-            <tr>
-                <form action="products_order.jsp" method="POST">
-                    <input type="hidden" name="action" value="update"/>
-                    <input type="hidden" name="id" value="<%=rs.getInt("id")%>"/>
-
-                <%-- Get the id --%>
-                <td>
-                    <%=rs.getInt("id")%>
-                </td>
-
-                <%-- Get the product ID --%>
-                <td>
-                    <input value="<%=rs.getInt("productid")%>" name="productID" size="15"/>
-                </td>
-
-                <%-- Get the quantity --%>
-                <td>
-                    <input value="<%=rs.getInt("quantity")%>" name="quantity" size="15"/>
-                </td>
-
-            </tr>
-
-            <%
-                }
-            %>
+    	          	
+            <table>
+              <tr>
+                <h2>Your Shopping Cart: </h2>
+              </tr>
+              <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+              </tr>
             
-            
-
+			<%
+				
+	            Statement query = conn.createStatement();
+	            //result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
+	            rs = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND u.id = "+ userID + " AND sc.buyer = " + userID);
+			
+			%>
+			<%
+			while (rs.next()){
+				String name = rs.getString("name");
+				int quantity = Integer.parseInt(rs.getString("quantity"));
+				double price = Double.parseDouble((rs.getString("price")).substring(1)); 
+					
+			%>
+				<tr>
+					<td><%=name%></td>
+					<td><%=quantity%></td>
+					<td><%=price%></td>
+				</tr>
+			<%	
+			}
+			
+			%>
+			</table>
             <%-- -------- Close Connection Code -------- --%>
             <%
                 // Close the ResultSet
@@ -148,12 +159,16 @@
 
                 // Close the Connection
                 conn.close();
-                
+                }
+               else{
+               	out.println("No product added. LOL");
+               }
+            
             } catch (SQLException e) {
 
                 // Wrap the SQL exception in a runtime exception to propagate
                 // it upwards
-                throw new RuntimeException(e);
+            	 out.println("Sorry, something went wrong. Insert did not work.");
             }
             finally {
                 // Release resources in a finally block in reverse-order of

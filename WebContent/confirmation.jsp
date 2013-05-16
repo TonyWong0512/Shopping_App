@@ -58,7 +58,7 @@
 				int quantity = Integer.parseInt(result.getString("quantity"));
 				double price = Double.parseDouble((result.getString("price")).substring(1));
 				
-				total = quantity * price; 
+				total += quantity * price; 
 				
 	%>
 				<tr>
@@ -79,12 +79,12 @@
 			
 			
 	<%
-			/*String userID = request.getParameter("userID");
+			String userID = request.getParameter("userID");
 			if ( userID != null ){
 				int uID = Integer.parseInt(userID);
 				PreparedStatement q = conn.prepareStatement("DELETE FROM shopping_cart AS sc WHERE sc.buyer="+ uID );
 				q.executeUpdate();
-			}*/
+			}
 			
 			
             // Commit transaction
@@ -102,7 +102,7 @@
     	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
-        throw new RuntimeException(e);
+    	 out.println("Sorry, something went wrong. ");
     }
     finally {
         // Release resources in a finally block in reverse-order of

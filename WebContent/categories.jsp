@@ -10,14 +10,17 @@
         <td>
             <%-- Import the java.sql package --%>
             <%@ page import="java.sql.*"%>
+            <%@ page import="java.util.ArrayList"%>
             <%-- -------- Open Connection Code -------- --%>
             <%
             
             Connection conn = null;
             PreparedStatement pstmt = null;
             ResultSet rs = null;
+            ArrayList<Integer> arr = new ArrayList<Integer>();
             
             try {
+            	if (session.getAttribute("role") == "Owner") {
                 // Registering Postgresql JDBC driver with the DriverManager
                 Class.forName("org.postgresql.Driver");
 
@@ -100,6 +103,14 @@
 
             <%-- -------- SELECT Statement Code -------- --%>
             <%
+            
+            	Statement ptrCheckStatement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            	rs = ptrCheckStatement.executeQuery("SELECT DISTINCT c.id FROM categories AS c, products AS p WHERE c.id = p.category");
+            	
+            	while (rs.next()){
+            		arr.add(rs.getInt("id"));
+            	}
+            	
                 // Create the statement
                 Statement statement = conn.createStatement();
 
@@ -155,12 +166,22 @@
                 <%-- Button --%>
                 <td><input type="submit" value="Update"></td>
                 </form>
+                <%
+                	boolean categoryUsed = false;
+                	for( int i = 0; i < arr.size(); ++i ){
+                		if ( rs.getInt("id") == arr.get(i) ){
+                			categoryUsed = true;
+                		}
+                	}
+                	if ( !categoryUsed ){
+                %>
                 <form action="categories.jsp" method="POST">
                     <input type="hidden" name="action" value="delete"/>
                     <input type="hidden" value="<%=rs.getInt("id")%>" name="id"/>
                     <%-- Button --%>
                 <td><input type="submit" value="Delete"/></td>
                 </form>
+               <%} %>
             </tr>
 
             <%
@@ -177,11 +198,15 @@
 
                 // Close the Connection
                 conn.close();
+            	}
+            	else{
+            		out.println("Sorry, you are not allowed access to this page.");
+            	}
             } catch (SQLException e) {
 
                 // Wrap the SQL exception in a runtime exception to propagate
                 // it upwards
-                throw new RuntimeException(e);
+            	 out.println("Sorry, something went wrong. Insert did not work.");
             }
             finally {
                 // Release resources in a finally block in reverse-order of

@@ -65,7 +65,7 @@
 				int quantity = Integer.parseInt(result.getString("quantity"));
 				double price = Double.parseDouble((result.getString("price")).substring(1));
 				
-				total = quantity * price; 
+				total += quantity * price; 
 				
 	%>
 				<tr>
@@ -105,7 +105,7 @@
     	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
-        throw new RuntimeException(e);
+    	 out.println("Sorry, something went wrong.");
     }
     finally {
         // Release resources in a finally block in reverse-order of
