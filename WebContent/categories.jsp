@@ -20,7 +20,7 @@
             ArrayList<Integer> arr = new ArrayList<Integer>();
             
             try {
-            	if (session.getAttribute("role") == "Owner") {
+            	if (session.getAttribute("role").equals("Owner")) {
                 // Registering Postgresql JDBC driver with the DriverManager
                 Class.forName("org.postgresql.Driver");
 

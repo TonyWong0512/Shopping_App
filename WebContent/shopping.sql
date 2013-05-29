@@ -60,7 +60,15 @@ CREATE TABLE shopping_cart (
     productID	INTEGER references products(id),
     quantity	INTEGER
 );
-
+CREATE TABLE sales(
+    id SERIAL PRIMARY KEY,
+    productID INT references products(sku) NOT NULL,
+    customerID INT references users(id) NOT NULL,
+    day INT NOT NULL,
+    month INT NOT NULL,
+    quantity INT NOT NULL,
+    totalCost INT NOT NULL
+);
 INSERT INTO categories (name, description) values ('WTF TESTING', 'This is test... lololll');
 INSERT INTO products (name, sku, category, price) values ('WTF MACHINE', 093240902, 1, 3.50 );
 INSERT INTO users (username, role, age, state) values ('roflcake', 'Owner', 23, 'California');
