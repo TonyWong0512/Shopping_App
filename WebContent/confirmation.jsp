@@ -58,6 +58,17 @@
 				int quantity = Integer.parseInt(result.getString("quantity"));
 				double price = Double.parseDouble((result.getString("price")).substring(1));
 				
+				/*
+				Update if there is already something in the database. Else insert
+				
+				PrepareStatement lol = conn.prepareStatement("INSERT INTO sales(productID, customerID, day, month, quantity, totalCost) VALUES(?,?,?,?,?)");
+				productID -- you get from shopping cart (name)
+				customerID -- you get from shopping cart 
+				month -- java.util.Date().getMonth();
+				day -- java.util.Date().getDay();
+				quantity -- you get from shopping cart
+				totalCost (quantity of 1 product * cost of 1 product) --  quantity * price */
+				
 				total += quantity * price; 
 				
 	%>
