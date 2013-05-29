@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <%-- Import the java.sql package --%>
 <%@ page import="java.sql.*"%>
+<%@ page import="java.util.*"%>
 <!--  Include the UserInfo page -->
 <title>Sales Page</title>
 </head>
@@ -20,10 +21,12 @@
      <%
      
      Connection conn = null;
-     PreparedStatement query = null;
-     PreparedStatement query2 = null;
+     Statement query = null;
+     Statement query2 = null;
+     Statement query3 = null;
      ResultSet result = null;
      ResultSet result2 = null;
+     ResultSet tableFillResult = null;
      
      try {
          // Registering Postgresql JDBC driver with the DriverManager
@@ -45,52 +48,98 @@
 
             // Create the prepared statement and use it to
             // INSERT student values INTO the students table.
-            query = conn
-            .prepareStatement("SELECT username, SUM(totalCost) FROM users, sales WHERE sales.customerID = users.id GROUP BY username ORDER BY SUM(totalCost) DESC LIMIT 10");
-            result = query.executeQuery();
-            query2 = conn
-            .prepareStatement("SELECT products.name, SUM(quantity) FROM products, sales WHERE sales.productID = products.id GROUP BY products.name ORDER BY SUM(quantity) DESC LIMIT 10");
-            result2 = query2.executeQuery();
             
+            //Getting top 10 customers
+            String customerQ = "SELECT username, totalCost FROM TopCustomers LIMIT 10";
+            query = conn
+            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            result = query.executeQuery(customerQ);
+            
+            //Getting top 10 products
+            String productsQ = "SELECT name FROM TopProducts LIMIT 10";
+            query2 = conn
+            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            result2 = query2.executeQuery(productsQ);
+            
+            //Getting quantity information
+            String q = "SELECT ppc.username, ppc.name, ppc.quantity, totalCost FROM ProductsPerCustomers AS ppc " +
+            				"WHERE ppc.productID IN (SELECT productID FROM TopProducts LIMIT 10) AND " +
+            				"ppc.customerID IN (SELECT customerID FROM TopCustomers LIMIT 10)" ;
+            query3 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            tableFillResult = query3.executeQuery(q);
     %>
             
-            <table>
-          	<tr>
-          		<th>Customer</th>
-          		<th>TotalCost</th>
-          		
-          		<%    	          			
-          		while (result2.next()){
-          	    %>
-          		<th><%=result2.getString(1)%></th>
-          		<%	
-          		  }
-          	    %>
-          	</tr>
-
-          	
-          	<%    	          			
-          		while (result.next()){
-          	%>
-          	<form action="products_order.jsp" method="POST">
-          		<tr>
-          			<td><input name="name" disabled = "disabled" value='<%=result.getString(1)%>'></td>
-          			<td><input name="totalcost" disabled = "disabled" value='<%=result.getInt(2)%>'></td>
-          			<td><input name="product1" disabled = "disabled" value=0></td>
-		            <td><input name="product2" disabled = "disabled" value=0></td>
-		            <td><input name="product3" disabled = "disabled" value=0></td>
-		            <td><input name="product4" disabled = "disabled" value=0></td>
-		            <td><input name="product5" disabled = "disabled" value=0></td>
-		            <td><input name="product6" disabled = "disabled" value=0></td>
-		            <td><input name="product7" disabled = "disabled" value=0></td>
-		            <td><input name="product8" disabled = "disabled" value=0></td>
-		            <td><input name="product9" disabled = "disabled" value=0></td>
-		            <td><input name="product10" disabled = "disabled" value=0></td>
-	             </tr>
-          	</form>	
-          	<%	
+            <table border="1">
+          		          		
+          		<% 
+          		String[] productNames = new String[10];
+          		int i = 0;
+          		while(result2.next()){
+          			productNames[i] = result2.getString("name");
+          			i++;
           		}
+          		
+          		for ( int j = 0; j < 11; ++j ){ // 10 rows
+          			%> <tr> <%
+          			if ( j == 0 ){ //for first row
+          				for ( int k = 0; k < 11; ++k ){ //11 cols
+          					if ( k == 0 ){ 
+          					%>
+          						<th>Customer / Sales Total</th>
+          					<%	
+          						continue;
+          					}
+          		%>			
+          					<th><%=productNames[k-1]%></th>
+          		<%
+
+          				}
+          				%></tr><%
+          			} //end first row code
+          			else{
+          				
+          				for ( int k = 0; k < 11; ++k ){ //12 cols
+          					boolean updatedTable = false;
+          					int totalAmount = 0;
+	      					if ( k == 0 ){ 
+	      						if (!result.next()){
+	          						result.first();
+	          					}
+	      						tableFillResult.beforeFirst();
+	      						while ( tableFillResult.next() ){
+	      							if ( tableFillResult.getString("username").equals(result.getString("username")) ){
+	      								totalAmount += tableFillResult.getInt("totalCost");
+	      							}
+	      						}
+	      					%>
+	      						<th><%=result.getString("username")%> / <%=totalAmount%></th>
+	      					<%	
+	      						continue;
+          					}
+          						tableFillResult.beforeFirst();
+	          					while ( tableFillResult.next() ){
+	          						//System.out.println("Pname: " + productNames[k-1] + "; Name: " + tableFillResult.getString("name"));
+	          						if ( productNames[k-1].equals(tableFillResult.getString("name"))){
+		          						if ( result.getString("username").equals(tableFillResult.getString("username")) ){
+		          							%> <th><%=tableFillResult.getInt("quantity")%></th>  <% 
+		          							updatedTable = true;
+		          						}
+
+		          					}
+          						}
+	          				if ( !updatedTable ){
+          						%> <th>0</th>  <%
+	          				}
+          				
+          		%>
+          			
+          		<%
+          			}	
+          		}
+          			%> <tr> <%
+          	}
           	%>
+
           	</table>
           	
     <table>
