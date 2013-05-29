@@ -1,3 +1,5 @@
+/* To run: java -classpath .;postgresql-9.1-901.jdbc4.jar DataGenerator */
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -80,8 +82,8 @@ public class DataGenerator {
 
 	private static void createCategoriesTable(Connection conn)
 			throws SQLException {
-		/*PreparedStatement createCategoriesPS = conn
-				.prepareStatement("CREATE TABLE Categories (id SERIAL PRIMARY KEY, name TEXT NOT NULL, description TEXT);");
+	/*	PreparedStatement createCategoriesPS = conn
+				.prepareStatement("CREATE TABLE categories (id			SERIAL PRIMARY KEY, name		VARCHAR(128),description TEXT);");
 		if (createCategoriesPS != null) {
 			createCategoriesPS.execute();
 			createCategoriesPS.close();
@@ -93,7 +95,12 @@ public class DataGenerator {
 			for (int i = 0; i < CATEGORIES.length; i++) {
 				insertCategoryPS.setString(1, CATEGORIES[i]);
 				insertCategoryPS.setString(2, CATEGORIES[i] + " description");
-				insertCategoryPS.executeUpdate();
+        try{
+          insertCategoryPS.executeUpdate();
+        }
+            catch (SQLException e){
+              continue;
+            }
 			}
 			insertCategoryPS.close();
 		}
@@ -105,7 +112,7 @@ public class DataGenerator {
 		final int MAX_PRICE = 100000; // 1000 dollars
 
 		/*PreparedStatement createProductsPS = conn
-				.prepareStatement("CREATE TABLE Products (sku SERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, cat_id INT REFERENCES Categories (id) NOT NULL, price INT NOT NULL);");
+				.prepareStatement("CREATE TABLE products (id		SERIAL PRIMARY KEY,name	VARCHAR(128),sku		INTEGER UNIQUE,category INTEGER references categories(id),price	MONEY);");
 		if (createProductsPS != null) {
 			createProductsPS.execute();
 			createProductsPS.close();
@@ -134,14 +141,19 @@ public class DataGenerator {
 		Object[] pArray = ps.toArray();
 
 		PreparedStatement insertProductPS = conn
-				.prepareStatement("INSERT INTO products (name, cat_id, price) VALUES (?, ?, ?);");
+				.prepareStatement("INSERT INTO products (name, category, price) VALUES (?, ?, ?);");
 		if (insertProductPS != null) {
 			for (int i = 0; i < pArray.length; i++) {
 				Product p = (Product) pArray[i];
 				insertProductPS.setString(1, p.name);
 				insertProductPS.setInt(2, p.catId);
 				insertProductPS.setInt(3, p.price);
-				insertProductPS.executeUpdate();
+        try{
+          insertProductPS.executeUpdate();
+          }
+            catch (SQLException e){
+              continue;
+            }
 			}
 			insertProductPS.close();
 		}
@@ -154,7 +166,7 @@ public class DataGenerator {
 			throws SQLException {
 
 		/*PreparedStatement createCustomersPS = conn
-				.prepareStatement("CREATE TABLE Customers (id SERIAL PRIMARY KEY, name TEXT NOT NULL, age INT NOT NULL, state CHARACTER(2) NOT NULL);");
+				.prepareStatement("CREATE TABLE users ( id	SERIAL PRIMARY KEY,username VARCHAR(64) UNIQUE NOT NULL, role	VARCHAR(8) NOT NULL, age		SMALLINT,  state	VARCHAR(30));");
 		if (createCustomersPS != null) {
 			createCustomersPS.execute();
 			createCustomersPS.close();
@@ -191,14 +203,20 @@ public class DataGenerator {
 
 		Iterator<Customer> iter = customers.iterator();
 		PreparedStatement insertCustomerPS = conn
-				.prepareStatement("INSERT INTO users (name, age, state) VALUES (?, ?, ?)");
+				.prepareStatement("INSERT INTO users (username, role, age, state) VALUES (?, ?, ?, ?)");
 		if (insertCustomerPS != null) {
 			while (iter.hasNext()) {
 				Customer c = iter.next();
 				insertCustomerPS.setString(1, c.name);
-				insertCustomerPS.setInt(2, c.age);
-				insertCustomerPS.setString(3, c.state);
-				insertCustomerPS.executeUpdate();
+        insertCustomerPS.setString(2, "Customer");
+				insertCustomerPS.setInt(3, c.age);
+				insertCustomerPS.setString(4, c.state);
+        try{
+          insertCustomerPS.executeUpdate();
+        }
+            catch (SQLException e){
+              continue;
+            }
 			}
 			insertCustomerPS.close();
 		}
@@ -213,7 +231,7 @@ public class DataGenerator {
 		final int NUM_SALES_PER_PRODUCT_PER_CUSTOMER = 5;
 
 		/*PreparedStatement createSalesPS = conn
-				.prepareStatement("CREATE TABLE Sales (id SERIAL PRIMARY KEY, product_id INT REFERENCES Products (sku) NOT NULL, customer_id INT REFERENCES Customers (id) NOT NULL, day INT NOT NULL, month INT NOT NULL, quantity INT NOT NULL, total_cost INT NOT NULL);");
+				.prepareStatement("CREATE TABLE sales(  id SERIAL PRIMARY KEY,  productID INT references products(sku) NOT NULL,  customerID INT references users(id) NOT NULL,  day INT NOT NULL,   month INT NOT NULL,   quantity INT NOT NULL,    totalCost INT NOT NULL);");
 		if (createSalesPS != null) {
 			createSalesPS.execute();
 			createSalesPS.close();
@@ -221,7 +239,7 @@ public class DataGenerator {
 
 		int numQueries = 0;
 		PreparedStatement insertSalePS = conn
-				.prepareStatement("INSERT INTO sales (product_id, customer_id, day, month, quantity, total_cost) VALUES (?, ?, ?, ?, ?, ?)");
+				.prepareStatement("INSERT INTO sales (productID, customerID, day, month, quantity, totalCost) VALUES (?, ?, ?, ?, ?, ?)");
 		if (insertSalePS != null) {
 			for (int curCustomer = 1; curCustomer <= N * M; curCustomer++) {
 				for (int i = 0; i < NUM_PRODUCTS_PER_CUSTOMER; i++) {
@@ -241,8 +259,13 @@ public class DataGenerator {
 						insertSalePS.setInt(4, month);
 						insertSalePS.setInt(5, quantity);
 						insertSalePS.setInt(6, totalPrice);
-
-						insertSalePS.executeUpdate();
+            insertSalePS.executeUpdate();
+            /*try{
+              insertSalePS.executeUpdate();
+            }
+            catch (SQLException e){
+              continue;
+            }*/
 
                         if(numQueries % 1000 == 0) conn.commit();
 						numQueries++;
