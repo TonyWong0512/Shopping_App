@@ -41,6 +41,7 @@ CREATE TABLE categories (
     description TEXT
 );
 CREATE TABLE products (
+    id      SERIAL UNIQUE,
 	sku		SERIAL PRIMARY KEY,
 	name	VARCHAR(128),
 	category INTEGER references categories(id),
