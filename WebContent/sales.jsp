@@ -31,6 +31,21 @@
          conn = DriverManager.getConnection(
              "jdbc:postgresql://localhost/shopping?" +
              "user=postgres&password=postgres");
+         
+     	/**** GET ALL FILTERS AND SHIT  *****/    
+         String action = request.getParameter("rowstatus");
+     	String rowsView = request.getParameter("rowsView");
+     	String quarter = request.getParameter("quarter");
+     	String categories = request.getParameter("categories");
+     	String state = request.getParameter("customerState");
+     	String age = request.getParameter("customerAge");
+     	
+     	boolean rowsAreCustomers = true;
+     	if (rowsView != null && rowsView.equals("States")){
+     		rowsAreCustomers = false;
+     	}
+     	
+     	/**** END GET ALL FILTERS AND SHIT ****/
      %>
      <!--------------------------- THIS IS THE FORM ------------------------------>
      	<form action="sales.jsp" method="post">
@@ -170,31 +185,27 @@
 		<input type="hidden" name="nextSetC" value="<%=offsetC%>" />
 		<input type="hidden" name="nextSetP" value="<%=offsetP%>" />
 		<input type="hidden" name="getNext" value="products" />
+		<% if (rowsView != null && rowsAreCustomers){ %>
+			<input type="hidden" name="rowsView" value="Customers" />
+		<% }else if (rowsView != null){ %>
+			<input type="hidden" name="rowsView" value="States" />
+		<% } %>
 		<input type="submit" value="Next 10 Products" />
 	</form>
 	<form method="POST" action="sales.jsp">
 		<input type="hidden" name="nextSetP" value="<%=offsetP%>" />
 		<input type="hidden" name="nextSetC" value="<%=offsetC%>" />
 		<input type="hidden" name="getNext" value="customers" />
-		<input type="submit" value="Next 10 Customers" />
+		<% if (rowsAreCustomers){ %>
+			<input type="submit" value="Next 10 Customers" />
+		<% }else{  %>
+			<input type="hidden" name="rowsView" value="States" />
+			<input type="submit" value="Next 10 States" />
+		<%} %>
 	</form>
      <!---------------------------END  THIS IS THE FORM ------------------------------>
     <%-- -------- INSERT Code -------- --%>
     <%
-    	/**** GET ALL FILTERS AND SHIT  *****/    
-        String action = request.getParameter("rowstatus");
-    	String rowsView = request.getParameter("rowsView");
-    	String quarter = request.getParameter("quarter");
-    	String categories = request.getParameter("categories");
-    	String state = request.getParameter("customerState");
-    	String age = request.getParameter("customerAge");
-    	
-    	boolean rowsAreCustomers = true;
-    	if (rowsView != null && rowsView.equals("States")){
-    		rowsAreCustomers = false;
-    	}
-    	
-    	/**** END GET ALL FILTERS AND SHIT ****/
     
         // Check if an insertion is requested
         /******************************* BEGIN IF CUSTOMERS ARE CHOSEN *********************************/
@@ -290,7 +301,7 @@
 			String customerQ = "";
 			String q = "";
 			if (rowsView != null && !rowsAreCustomers){
-				customerQ = "SELECT state FROM ProductsPerCustomers GROUP BY state ORDER BY state ASC";
+				customerQ = "SELECT state FROM ProductsPerCustomers GROUP BY state ORDER BY state ASC LIMIT 10" + offsetCStr;
 				q = "SELECT ppc.state, ppc.name, ppc.quantity, totalCost FROM " + tableName +
 	    				"AS ppc WHERE ppc.name IN (SELECT name FROM TopProducts LIMIT 10) AND " +
 	    				"ppc.state IN (SELECT state FROM TopCustomers)" + whereClause3 + " ORDER BY ppc.state ASC";
@@ -394,27 +405,29 @@
 	      							}
 	      						}
 	      					%>
-	      						<th><%=result.getString(colName)%> / <%=totalAmount%></th>
+	      						<th><%=result.getString(colName)%> / $<%=totalAmount%></th>
 	      					<%	
 	      						continue;
           					}
 	      						int cellQuantity = 0;
+	      						int itemSales = 0;
           						tableFillResult.beforeFirst();
 	          					while ( tableFillResult.next() ){
 	          						//System.out.println("Pname: " + productNames[k-1] + "; Name: " + tableFillResult.getString("name"));
 	          						if ( productNames[k-1].equals(tableFillResult.getString("name"))){
 		          						if ( result.getString(colName).equals(tableFillResult.getString(colName)) ){
 		          							cellQuantity += tableFillResult.getInt("quantity");
+		          							itemSales += tableFillResult.getInt("totalCost");
 		          							updatedTable = true;
 		          						}
 
 		          					}
           						}
 	          				if ( !updatedTable ){
-          						%> <th>0</th>  <%
+          						%> <th>0/$0</th>  <%
 	          				}
 	          				else{
-	          					%> <th><%=cellQuantity%></th>  <% 
+	          					%> <th><%=cellQuantity%> / $<%=itemSales%></th>  <% 
 	          				}
           				
           		%>

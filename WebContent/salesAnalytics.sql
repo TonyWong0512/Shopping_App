@@ -3,7 +3,7 @@ DROP TABLE SalesByDate, ProductsPerCustomers, TopCustomers, TopProducts;
 CREATE TABLE ProductsPerCustomers
 AS (
 	SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, 
-		    users.age, categories.name as category, users.state
+		    users.age, categories.name as category, users.state, products.price
 	FROM users, products, sales, categories
 	WHERE sales.customerID = users.id AND sales.productID = products.sku AND categories.id = products.category
 	GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name
@@ -30,7 +30,7 @@ AS(
 CREATE TABLE SalesByDate
 AS(
 	SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, 
-		    users.age, categories.name as category, users.state, sales.month
+		    users.age, categories.name as category, users.state, sales.month, products.price
 	FROM users, products, sales, categories
 	WHERE sales.customerID = users.id AND sales.productID = products.sku AND categories.id = products.category
 	GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name, sales.month
