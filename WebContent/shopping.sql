@@ -75,5 +75,5 @@ INSERT INTO users (username, role, age, state) values ('roflcake', 'Owner', 23, 
 INSERT INTO shopping_cart (buyer, productID, quantity) values (1, 1, 2);
 INSERT INTO sales (productID, customerID, day, month, quantity, totalCost) values (1,1,28,5,8,23);*/
 
-/* Query to clear all tables */
-TRUNCATE categories, products, users, shopping_cart, sales;
+/* Query to clear all tables 
+TRUNCATE categories, products, users, shopping_cart, sales;*/

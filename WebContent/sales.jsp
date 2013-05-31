@@ -27,7 +27,8 @@
      ResultSet customerTotalR = null;
      
      try {
-    	 if (session.getAttribute("role") != null && session.getAttribute("role").equals("Owner")){
+    	 //if (session.getAttribute("role") != null && session.getAttribute("role").equals("Owner")){
+    	if (true){
          // Registering Postgresql JDBC driver with the DriverManager
          Class.forName("org.postgresql.Driver");
 
@@ -448,9 +449,13 @@
           			while (productSalesR.next()){
           				if (productSalesR.getString("name").equals(productNames[i])){
           					productPrices[i] = productSalesR.getInt("totalSales");
+          					break;
           				}
           			}
           		}
+          		/*for ( int z = 0; z < productPrices.length; z++){
+          			System.out.println(productPrices[z]);
+          		}*/
           		
           		for ( int j = 0; j < resultSize+1; ++j ){ // 10 rows
           			%> <tr> <%
@@ -479,18 +484,13 @@
 	      						if (!result.next()){
 	          						result.first();
 	          					}
-	      						tableFillResult.beforeFirst();
-	      						while ( tableFillResult.next() ){
-	      							//System.out.println(tableFillResult.getString(colName));
-	      							if ( tableFillResult.getString(colName).equals(result.getString(colName)) ){
-	      								customerTotalR.beforeFirst();
-	      								while(customerTotalR.next()){
-	      									if (customerTotalR.getString("username").equals(result.getString(colName))){
-	      										totalAmount = customerTotalR.getInt("total");
-	      									}
-	      								}
-	      							}
-	      						}
+	      						while(customerTotalR.next()){
+  									System.out.println(customerTotalR.getString("username"));
+  									if (customerTotalR.getString("username").equals(result.getString(colName))){
+  										totalAmount = customerTotalR.getInt("total");
+  										break;
+  									}
+  								}
 	      					%>
 	      						<td><%=result.getString(colName)%> / $<%=totalAmount%></td>
 	      					<%	
@@ -506,6 +506,7 @@
 		          							cellQuantity += tableFillResult.getInt("quantity");
 		          							itemSales += tableFillResult.getInt("totalCost");
 		          							updatedTable = true;
+		          							break;
 		          						}
 
 		          					}
