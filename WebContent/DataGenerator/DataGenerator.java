@@ -141,20 +141,21 @@ public class DataGenerator {
 		Object[] pArray = ps.toArray();
 
 		PreparedStatement insertProductPS = conn
-				.prepareStatement("INSERT INTO products (name, category, price) VALUES (?, ?, ?);");
+				.prepareStatement("INSERT INTO products (name, category, price) VALUES (?, ?, ?, ?);");
 		if (insertProductPS != null) {
 			for (int i = 0; i < pArray.length; i++) {
 				Product p = (Product) pArray[i];
 				insertProductPS.setString(1, p.name);
 				insertProductPS.setInt(2, p.catId);
 				insertProductPS.setInt(3, p.price);
-        try{
+		insertProductPS.executeUpdate();
+        /*try{
           insertProductPS.executeUpdate();
           }
             catch (SQLException e){
               continue;
             }
-			}
+			}*/
 			insertProductPS.close();
 		}
 
@@ -259,13 +260,13 @@ public class DataGenerator {
 						insertSalePS.setInt(4, month);
 						insertSalePS.setInt(5, quantity);
 						insertSalePS.setInt(6, totalPrice);
-            insertSalePS.executeUpdate();
-            /*try{
+            //insertSalePS.executeUpdate();
+            try{
               insertSalePS.executeUpdate();
             }
             catch (SQLException e){
               continue;
-            }*/
+            }
 
                         if(numQueries % 1000 == 0) conn.commit();
 						numQueries++;

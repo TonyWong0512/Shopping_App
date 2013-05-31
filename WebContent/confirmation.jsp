@@ -39,7 +39,7 @@
 
          // Open a connection to the database using DriverManager
          conn = DriverManager.getConnection(
-             "jdbc:postgresql://localhost/shopping?" +
+             "jdbc:postgresql://localhost/" + application.getAttribute("database") + "?" +
              "user=postgres&password=postgres");
      %>
     <%-- -------- INSERT Code -------- --%>
@@ -49,7 +49,7 @@
             conn.setAutoCommit(false);
             
             Statement statement = conn.createStatement();
-            result = statement.executeQuery("SELECT p.name, sc.quantity, p.price, u.id, p.id FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
+            result = statement.executeQuery("SELECT p.name, sc.quantity, p.price, u.id as uID, p.sku as SKU FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.sku AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
             //result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='hi'");
 
 	%>
@@ -59,9 +59,9 @@
 				String name = result.getString("name");
 				int quantity = Integer.parseInt(result.getString("quantity"));
 				double price = Double.parseDouble((result.getString("price")).substring(1));
-				int customerId = Integer.parseInt(result.getString(4));
-				int productId = Integer.parseInt(result.getString(5));
-				int month = calendar.get(Calendar.MONTH);
+				int customerId = Integer.parseInt(result.getString("uID"));
+				int productId = Integer.parseInt(result.getString("SKU"));
+				int month = calendar.get(Calendar.MONTH) + 1;
 				int day = calendar.get(Calendar.DAY_OF_MONTH);
 				
 
@@ -83,11 +83,9 @@
 	            query.setInt(3, day);
 	            query.setInt(4, month);
 	            query.setInt(5, quantity);
-	            query.setInt(6, (int)price);
+	            query.setDouble(6, price);
 	            int rowCount = query.executeUpdate();
 	            
-	            conn.commit();
-	            conn.setAutoCommit(true);
 
 				total += quantity * price; 
 
@@ -99,6 +97,42 @@
 				</tr>
 	<%	
 			}
+			/* UPDATING PRECOMPUTED TABLE */
+			//Creating TopProducts and TopCustomer Tables
+			try{
+				Statement dropPPC = conn.createStatement();
+            	dropPPC.executeUpdate("DROP TABLE ProductsPerCustomers");
+            	Statement dropSBD = conn.createStatement();
+            	dropSBD.executeUpdate("DROP TABLE SalesByDate");
+			}
+            catch(SQLException e){
+            	System.out.println("Table already exists probably");
+            }
+			String ppcTableQ = "SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, " +
+				    "users.age, categories.name as category, users.state, products.price " +
+					"FROM users, products, sales, categories " +
+					"WHERE sales.customerID = users.id AND sales.productID = products.sku AND categories.id = products.category " +
+					"GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, " +
+					"users.state, categories.name ORDER BY SUM(totalCost) DESC";
+			String sbdTableQ = "SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, " + 
+				    "users.age, categories.name as category, users.state, sales.month, products.price FROM users, products, sales, categories " + 
+					"WHERE sales.customerID = users.id AND sales.productID = products.sku AND categories.id = products.category " + 
+					"GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name, sales.month";
+			Statement createPrecomputedTable1 = conn.createStatement();
+            createPrecomputedTable1.executeUpdate("CREATE TABLE ProductsPerCustomers AS(" + ppcTableQ + ")");
+            Statement createPrecomputedTable2 = conn.createStatement();
+            createPrecomputedTable2.executeUpdate("CREATE TABLE SalesByDate AS(" + sbdTableQ + ")");
+			String productsQ = "SELECT name FROM (SELECT name, quantity FROM ProductsPerCustomers) as lol GROUP BY name ORDER BY SUM(quantity) DESC LIMIT 10";
+            String customerQ = "SELECT username FROM (SELECT username, totalCost FROM ProductsPerCustomers) as lol GROUP BY username ORDER BY SUM(totalCost) DESC LIMIT 10";
+			Statement dropQ1 = conn.createStatement();
+            dropQ1.executeUpdate("DROP TABLE TopCustomers");
+            Statement dropQ2 = conn.createStatement();
+            dropQ2.executeUpdate("DROP TABLE TopProducts");
+            Statement createTable1 = conn.createStatement();
+            createTable1.executeUpdate("CREATE TABLE TopCustomers AS("+ customerQ +")");
+            Statement createTable2 = conn.createStatement();
+            createTable2.executeUpdate("CREATE TABLE TopProducts AS("+ productsQ +")");
+			
 
 	%>
 

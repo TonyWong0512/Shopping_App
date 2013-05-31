@@ -1,4 +1,5 @@
 <% 
+	application.setAttribute("database","shopping");
 	String user = (String) session.getAttribute("user");
     if (user != null){
       out.println("Hello " + user);
@@ -11,6 +12,7 @@
 		<h2>Pages:</h2>
 	    <li><a href="categories.jsp">Add/View Categories</a></li>
 	    <li><a href="products.jsp">Add/View Products</a></li>
+	    <li><a href="sales.jsp">Sales Analytics</a></li>
 	</ul>
 <%
     }

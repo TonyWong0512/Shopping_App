@@ -8,6 +8,7 @@
 <%@ page import="java.sql.*"%>
 <%@ page import="java.util.*"%>
 <!--  Include the UserInfo page -->
+<jsp:include page="userinfo.jsp" />
 <title>Sales Page</title>
 </head>
 <body>
@@ -22,14 +23,17 @@
      ResultSet result2 = null;
      ResultSet tableFillResult = null;
      ResultSet rs = null;
+     ResultSet productSalesR = null;
+     ResultSet customerTotalR = null;
      
      try {
+    	 if (session.getAttribute("role") != null && session.getAttribute("role").equals("Owner")){
          // Registering Postgresql JDBC driver with the DriverManager
          Class.forName("org.postgresql.Driver");
 
          // Open a connection to the database using DriverManager
          conn = DriverManager.getConnection(
-             "jdbc:postgresql://localhost/shopping?" +
+             "jdbc:postgresql://localhost/" + application.getAttribute("database") + "?" +
              "user=postgres&password=postgres");
          
      	/**** GET ALL FILTERS AND SHIT  *****/    
@@ -219,8 +223,59 @@
             
             
             /********* BUILDING QUERIES ************/
-           
             
+            //This block outputs a description of what the viewer is seeing.
+           	String queryInfo = ""; //String to show what filter users select.
+           	if (rowsAreCustomers){
+           		queryInfo += "You would like to view sales of <strong>Customers</strong>";
+           		if (age != null){
+           			if (age.equals("all"))
+               			queryInfo += " of <strong>All Ages</strong> ";
+           			else
+           				queryInfo += " <strong>Aged " + age + "</strong>";
+           		}
+               	if ( state != null ){
+               		if ( state.equals("all"))
+               			queryInfo += " in <strong>All States</strong>";
+              		else
+              			queryInfo += " in <Strong>" + state + "</strong>";
+               	}
+               	if (categories != null){
+               		queryInfo += " on Products in";
+               		if (categories.equals("all"))
+               			queryInfo += " <strong>All Categories</strong>";
+               		else
+               			queryInfo += categories;
+               	}
+               	if (quarter != null){
+               		queryInfo += " during ";
+               		if (quarter.equals("year"))
+               			queryInfo += " the <strong>Year</strong>";
+               		else
+               			queryInfo += " the <strong>" + quarter + "</strong> quarter";
+               	}
+               	queryInfo += ".";
+           	}
+           	else{
+           		queryInfo += "You would like to view sales of <strong>States</strong>";
+           		if (categories != null){
+               		queryInfo += " on Products in";
+               		if (categories.equals("all"))
+               			queryInfo += " <strong>All Categories</strong>";
+               		else
+               			queryInfo += " <strong>" + categories + "</strong>";
+               	}
+           		if (quarter != null){
+               		queryInfo += " during ";
+               		if (quarter.equals("year"))
+               			queryInfo += " the <strong>Year</strong>";
+               		else
+               			queryInfo += " the <strong>" + quarter + "</strong> quarter";
+               	}
+           		queryInfo += ".";
+           	}
+            
+           	
 			//This set of variables is for filtering Customers
             String whereClause1 = "";
             String groupClause1 ="";
@@ -351,6 +406,22 @@
             query3 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             tableFillResult = query3.executeQuery(q);
             
+            //Getting product sales
+            String productSalesQ = "SELECT name, SUM(totalCost) AS totalSales FROM (SELECT name, totalCost FROM ProductsPerCustomers" + 
+            						" GROUP BY name, totalCost) as lol WHERE name in (SELECT name FROM TopProducts) GROUP BY name " +
+            						"ORDER BY totalSales DESC";
+            query = conn
+            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            productSalesR = query.executeQuery(productSalesQ);
+            
+          //Getting product sales
+            String customerTotalQ = "SELECT username, SUM(totalCost) AS total FROM (SELECT username, totalCost FROM ProductsPerCustomers" + 
+            						" GROUP BY username, totalCost) as lol WHERE username in (SELECT username FROM TopCustomers) GROUP BY username " +
+            						"ORDER BY total DESC";
+            query = conn
+            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            customerTotalR = query.executeQuery(customerTotalQ);
+            
             int resultSize = 0;
             while (result.next()){
             	resultSize+=1;
@@ -365,10 +436,20 @@
           		if (!rowsAreCustomers)
           			colName = "state";
           		String[] productNames = new String[10];
+          		int[] productPrices = new int[10];
           		int productSize = 0;
           		while(result2.next() && resultSize > 0){
           			productNames[productSize] = result2.getString("name");
           			productSize++;
+          		}
+          		
+          		for (int i = 0; i < productNames.length; ++i){
+          			productSalesR.beforeFirst();
+          			while (productSalesR.next()){
+          				if (productSalesR.getString("name").equals(productNames[i])){
+          					productPrices[i] = productSalesR.getInt("totalSales");
+          				}
+          			}
           		}
           		
           		for ( int j = 0; j < resultSize+1; ++j ){ // 10 rows
@@ -383,7 +464,7 @@
           						continue;
           					}
           		%>			
-          					<th><%=productNames[k-1]%></th>
+          					<th><%=productNames[k-1]%> / $<%=productPrices[k-1]%></th>
           		<%
 
           				}
@@ -391,7 +472,7 @@
           			} //end first row code
           			else{
           				
-          				for ( int k = 0; k < 11; ++k ){ //12 cols
+          				for ( int k = 0; k < productSize+1; ++k ){ //11 cols
           					boolean updatedTable = false;
           					int totalAmount = 0;
 	      					if ( k == 0 ){ 
@@ -400,12 +481,18 @@
 	          					}
 	      						tableFillResult.beforeFirst();
 	      						while ( tableFillResult.next() ){
+	      							//System.out.println(tableFillResult.getString(colName));
 	      							if ( tableFillResult.getString(colName).equals(result.getString(colName)) ){
-	      								totalAmount += tableFillResult.getInt("totalCost");
+	      								customerTotalR.beforeFirst();
+	      								while(customerTotalR.next()){
+	      									if (customerTotalR.getString("username").equals(result.getString(colName))){
+	      										totalAmount = customerTotalR.getInt("total");
+	      									}
+	      								}
 	      							}
 	      						}
 	      					%>
-	      						<th><%=result.getString(colName)%> / $<%=totalAmount%></th>
+	      						<td><%=result.getString(colName)%> / $<%=totalAmount%></td>
 	      					<%	
 	      						continue;
           					}
@@ -424,10 +511,10 @@
 		          					}
           						}
 	          				if ( !updatedTable ){
-          						%> <th>0/$0</th>  <%
+          						%> <td>0/$0</td>  <%
 	          				}
 	          				else{
-	          					%> <th><%=cellQuantity%> / $<%=itemSales%></th>  <% 
+	          					%> <td><%=cellQuantity%> / $<%=itemSales%></td>  <% 
 	          				}
           				
           		%>
@@ -440,9 +527,7 @@
           	%>
 
           	</table>
-          	
-    <table>
-    
+    <p><%=queryInfo%></p>
     <% 
             
             // Commit transaction
@@ -454,6 +539,11 @@
         // Close the Connection
         	conn.close();
         }
+       }
+    	 
+    	 else{
+         	out.println("Sorry, you are not allowed access to this page.");
+         }
         /******************** END IF CUSTOMERS ARE CHOSEN *************************/
     %>
     <%-- -------- Error catching ---------- --%>

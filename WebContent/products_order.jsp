@@ -24,7 +24,7 @@
 
                 // Open a connection to the database using DriverManager
                 conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost/shopping?" +
+                    "jdbc:postgresql://localhost/"+ application.getAttribute("database") +"?" +
                     "user=postgres&password=postgres");
             %>
             
@@ -105,7 +105,7 @@
     	          			<td><input name="price" disabled = "disabled" value='<%=rs.getDouble("price")%>'></td>
     	          			<td><input name="quantity" type="text" value="0" ></td>
 				             <input type="hidden" name="adding" value="add"/>
-				             <input type="hidden" name="id" value='<%=rs.getInt("id")%>' />
+				             <input type="hidden" name="id" value='<%=rs.getInt("sku")%>' />
 				             <input type="hidden" name="product" value="<%=request.getParameter("product") %>" />;
  				             <td><input type="submit" value="Add to Cart"/></td>
 			             </tr>
@@ -129,7 +129,7 @@
 				
 	            Statement query = conn.createStatement();
 	            //result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
-	            rs = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND u.id = "+ userID + " AND sc.buyer = " + userID);
+	            rs = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.sku AND u.id = "+ userID + " AND sc.buyer = " + userID);
 			
 			%>
 			<%
