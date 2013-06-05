@@ -84,7 +84,7 @@
 	
 	                // Use the created statement to SELECT
 	                // the student attributes FROM the Student table.
-	                rs = statement.executeQuery("SELECT * FROM products WHERE id=" + Integer.parseInt(request.getParameter("product")) );
+	                rs = statement.executeQuery("SELECT * FROM products WHERE sku=" + Integer.parseInt(request.getParameter("product")) );
             %>
             
 
@@ -98,13 +98,14 @@
     	          	
     	          	<%    	          			
     	          		while (rs.next()){
+    	          			System.out.println(rs.getString("price"));
     	          	%>
     	          	<form action="products_order.jsp" method="POST">
     	          		<tr>
-    	          			<td><input name="name" disabled = "disabled" value='<%=rs.getString("name")%>'></td>
-    	          			<td><input name="price" disabled = "disabled" value='<%=rs.getDouble("price")%>'></td>
-    	          			<td><input name="quantity" type="text" value="0" ></td>
-				             <input type="hidden" name="adding" value="add"/>
+    	          			<td><input name="name" disabled = "disabled" value='<%=rs.getString("name")%>' /></td>
+    	          			<td><input name="price" disabled = "disabled" value='<%=rs.getString("price")%>' /></td>
+    	          			<td><input name="quantity" type="text" value="0" /></td>
+				             <input type="hidden" name="adding" value="add" />
 				             <input type="hidden" name="id" value='<%=rs.getInt("sku")%>' />
 				             <input type="hidden" name="product" value="<%=request.getParameter("product") %>" />;
  				             <td><input type="submit" value="Add to Cart"/></td>
@@ -136,7 +137,7 @@
 			while (rs.next()){
 				String name = rs.getString("name");
 				int quantity = Integer.parseInt(rs.getString("quantity"));
-				double price = Double.parseDouble((rs.getString("price")).substring(1)); 
+				String price = rs.getString("price"); 
 					
 			%>
 				<tr>
@@ -169,6 +170,7 @@
                 // Wrap the SQL exception in a runtime exception to propagate
                 // it upwards
             	 out.println("Sorry, something went wrong. Insert did not work.");
+                //throw e;
             }
             finally {
                 // Release resources in a finally block in reverse-order of

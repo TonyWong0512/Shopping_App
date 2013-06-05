@@ -17,24 +17,16 @@
 		<label>Username: <input type="text" name="username" value="" /></label>
 		<br />
 		<label>Role: 
-			<select name="role">
+			<select name="role" id="role">
 				<option value="Owner">Owner</option>
 				<option value="Customer">Customer</option>
 			</select>
 		</label>
 		<br />
-		<label>Age: <input type="text" name="age" value="" /></label>
-		<br />
-		<label>State: 
-			<select name="state">
-				<option value="California">California</option>
-				<option value="Colorado">Colorado</option>
-				<option value="Connecticut">Connecticut</option>
-				<option value="Florida">Florida</option>
-				<option value="Missouri">Missouri</option>
-			</select>
-		</label>
-		<br />
+		<span id="otherOptions">
+			<input type="hidden" name="age" value="0" /><input type="hidden" name="state" value="California" />
+		</span>
+		
 		<input type="hidden" name="signedup" value="yes" />
 		<input type="submit" value="Sign Up" />
 	</form>
@@ -113,6 +105,27 @@
     %>
 
     <a href="login.jsp">Click here to Login.</a>
-    
+    <script>
+    	var roleEl = document.getElementById("role");
+    	roleEl.addEventListener("change",function(){
+    		if( roleEl.value == "Customer"){
+    			otherOptions.innerHTML = "<label>Age: <input type=\"text\" name=\"age\" value=\"\" /></label>" +
+    			" <br /> " +
+    			"<label>State: " + 
+    				"<select name=\"state\">" +
+    					"<option value=\"California\">California</option>" +
+    					"<option value=\"Colorado\">Colorado</option>" +
+    					"<option value=\"Connecticut\">Connecticut</option>" +
+    					"<option value=\"Florida\">Florida</option>" +
+    					"<option value=\"Missouri\">Missouri</option>" +
+    				"</select>"+
+    			"</label>"+
+    			"<br />";
+    		}
+    		else{
+    			otherOptions.innerHTML ="<input type=\"hidden\" name=\"age\" value=\"0\" /><input type=\"hidden\" name=\"state\" value=\"California\" />";
+    		}
+    	})
+    </script>
 </body>
 </html>

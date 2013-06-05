@@ -1,4 +1,4 @@
-/*DROP TABLE SalesByDate, ProductsPerCustomers, TopCustomers, TopProducts;
+DROP TABLE SalesByDate, ProductsPerCustomers, TopCustomers, TopProducts;
 
 CREATE TABLE ProductsPerCustomers
 AS (
@@ -8,7 +8,7 @@ AS (
 	WHERE sales.customerID = users.id AND sales.productID = products.sku AND categories.id = products.category
 	GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name
 	ORDER BY SUM(totalCost) DESC
-);*/
+);
 /*CREATE TABLE TopCustomers
 AS(
 	SELECT sales.customerID, username, SUM(totalCost) AS totalCost, users.age, users.state
@@ -27,14 +27,15 @@ AS(
 	GROUP BY products.name, sales. productID, products.price
 	ORDER BY SUM(quantity) DESC
 );*/
-/*CREATE TABLE SalesByDate
+
+CREATE TABLE SalesByDate
 AS(
 	SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, 
-		    users.age, categories.name as category, users.state, sales.month, products.price
+		    users.age, categories.name as category, users.state, sales.month, products.price, sales.day
 	FROM users, products, sales, categories
 	WHERE sales.customerID = users.id AND sales.productID = products.sku AND categories.id = products.category
-	GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name, sales.month
-);*/
+	GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name, sales.day,sales.month
+);
 /*CREATE TABLE ProductsPerState
 AS (
 	SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, 
@@ -44,25 +45,16 @@ AS (
 	GROUP BY username, sales.customerID, products.name, sales.productID, products.price, users.age, products.category, users.state, categories.name
 	ORDER BY SUM(totalCost) DESC
 );*/
-/*CREATE TABLE TopCustomers
-AS(
-	SELECT username FROM (SELECT username, totalCost FROM ProductsPerCustomers) as lol GROUP BY username ORDER BY SUM(totalCost) DESC LIMIT 10
-);*/
-
-/*CREATE TABLE TopStates
-AS(
-	SELECT state FROM (SELECT state, totalCost FROM ProductsPerState) as lol GROUP BY state ORDER BY state ASC LIMIT 10
-);
-
-CREATE TABLE TopCustomersPerState
+CREATE TABLE TopCustomers
 AS(
 	SELECT username FROM (SELECT username, totalCost FROM ProductsPerCustomers) as lol GROUP BY username ORDER BY SUM(totalCost) DESC LIMIT 10
 );
-*/
-/*CREATE TABLE TopProducts
+
+
+CREATE TABLE TopProducts
 AS(
 	SELECT name FROM (SELECT name, quantity FROM ProductsPerCustomers) as lol GROUP BY name ORDER BY SUM(quantity) DESC LIMIT 10
-);*/
+);
 
 CREATE INDEX username_index ON ProductsPerCustomers(username);
 CREATE INDEX name_index ON ProductsPerCustomers(name);

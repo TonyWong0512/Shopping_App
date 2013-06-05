@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <%-- Import the java.sql package --%>
 <%@ page import="java.sql.*"%>
+<%@ page import="org.postgresql.util.*" %>
 <!--  Include the UserInfo page -->
 <jsp:include page="userinfo.jsp" />
 
@@ -63,7 +64,8 @@
 			while (result.next()){
 				String name = result.getString("name");
 				int quantity = Integer.parseInt(result.getString("quantity"));
-				double price = Double.parseDouble((result.getString("price")).substring(1));
+				PGmoney priceObj = new PGmoney(result.getString("price"));
+				double price = priceObj.val;
 				
 				total += quantity * price; 
 				

@@ -7,6 +7,7 @@
 <%-- Import the java.sql package --%>
 <%@ page import="java.sql.*"%>
 <%@ page import="java.util.*"%>
+<%@ page import="org.postgresql.util.*" %>
 <!--  Include the UserInfo page -->
 <jsp:include page="userinfo.jsp" />
 
@@ -31,6 +32,7 @@
      Connection conn = null;
      PreparedStatement query = null;
      ResultSet result = null;
+     ResultSet result2 = null;
      double total = 0.0;
      
      try {
@@ -49,21 +51,21 @@
             conn.setAutoCommit(false);
             
             Statement statement = conn.createStatement();
-            result = statement.executeQuery("SELECT p.name, sc.quantity, p.price, u.id as uID, p.sku as SKU FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.sku AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
+            result = statement.executeQuery("SELECT p.name, sc.quantity, p.price, u.id as uID, u.username, u.age, u.state, c.name as category, p.sku as SKU FROM shopping_cart AS sc, products AS p, users AS u, categories AS c WHERE sc.productID=p.sku AND p.category=c.id AND sc.buyer = u.id AND u.username='" + session.getAttribute("user") +"'");
             //result = statement.executeQuery("SELECT p.name, sc.quantity, p.price FROM shopping_cart AS sc, products AS p, users AS u WHERE sc.productID=p.id AND sc.buyer = u.id AND u.username='hi'");
-
 	%>
 	<%
 			Calendar calendar = Calendar.getInstance();
 			while (result.next()){
 				String name = result.getString("name");
 				int quantity = Integer.parseInt(result.getString("quantity"));
-				double price = Double.parseDouble((result.getString("price")).substring(1));
+				PGmoney priceObj = new PGmoney(result.getString("price"));
+				double price = priceObj.val;
 				int customerId = Integer.parseInt(result.getString("uID"));
 				int productId = Integer.parseInt(result.getString("SKU"));
 				int month = calendar.get(Calendar.MONTH) + 1;
 				int day = calendar.get(Calendar.DAY_OF_MONTH);
-				
+				double totalCost = 0;
 
 				/*
 				Update if there is already something in the database. Else insert
@@ -86,8 +88,8 @@
 	            query.setDouble(6, price);
 	            int rowCount = query.executeUpdate();
 	            
-
-				total += quantity * price; 
+				totalCost = quantity * price;
+				total += totalCost;
 
 	%>
 				<tr>
@@ -95,19 +97,40 @@
 					<td><%=quantity%></td>
 					<td><%=price%></td>
 				</tr>
+				
+				
 	<%	
+   				
+					PreparedStatement insertIntoPPC = conn.prepareStatement("INSERT INTO ProductsPerCustomers(customerId, username, totalCost, productID, name, quantity, age, category, state, price) VALUES(?,?,?,?,?,?,?,?,?,?)");
+					insertIntoPPC.setInt(1, customerId);
+					insertIntoPPC.setString(2, result.getString("username"));
+					insertIntoPPC.setDouble(3, totalCost);
+					insertIntoPPC.setInt(4, productId);
+					insertIntoPPC.setString(5, name);
+					insertIntoPPC.setInt(6, quantity);
+					insertIntoPPC.setInt(7, result.getInt("age"));
+					insertIntoPPC.setString(8, result.getString("category"));
+					insertIntoPPC.setString(9, result.getString("state"));
+					insertIntoPPC.setInt(10, (int) price);
+					insertIntoPPC.executeUpdate();
 			}
-			/* UPDATING PRECOMPUTED TABLE */
+			/* UPDATING PRECOMPUTED TABLE  
 			//Creating TopProducts and TopCustomer Tables
 			try{
 				Statement dropPPC = conn.createStatement();
             	dropPPC.executeUpdate("DROP TABLE ProductsPerCustomers");
-            	Statement dropSBD = conn.createStatement();
-            	dropSBD.executeUpdate("DROP TABLE SalesByDate");
 			}
             catch(SQLException e){
-            	System.out.println("Table already exists probably");
+            	System.out.println("ProductsPerCustomers doesnt exist probably");
             }
+			try{
+				Statement dropSBD = conn.createStatement();
+            	dropSBD.executeUpdate("DROP TABLE SalesByDate");
+			}
+			catch(SQLException e){
+				System.out.println("SalesByDate doesnt exist probably");
+			}
+			
 			String ppcTableQ = "SELECT sales.customerID, username, SUM(totalCost) AS totalCost, sales.productID, products.name, SUM(quantity) as quantity, " +
 				    "users.age, categories.name as category, users.state, products.price " +
 					"FROM users, products, sales, categories " +
@@ -131,7 +154,7 @@
             Statement createTable1 = conn.createStatement();
             createTable1.executeUpdate("CREATE TABLE TopCustomers AS("+ customerQ +")");
             Statement createTable2 = conn.createStatement();
-            createTable2.executeUpdate("CREATE TABLE TopProducts AS("+ productsQ +")");
+            createTable2.executeUpdate("CREATE TABLE TopProducts AS("+ productsQ +")"); */
 			
 
 	%>
@@ -154,7 +177,6 @@
 
             // Commit transaction
             conn.commit();
-            conn.setAutoCommit(true);
     %>
     <%-- -------- Close Connection Code -------- --%>
     <%
@@ -167,7 +189,8 @@
     	 //System.out.println("In catch");
         // Wrap the SQL exception in a runtime exception to propagate
         // it upwards
-    	 out.println("Sorry, something went wrong. ");
+    	 //out.println("Sorry, something went wrong. ");
+        throw e;
     }
     finally {
         // Release resources in a finally block in reverse-order of

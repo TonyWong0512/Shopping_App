@@ -485,7 +485,7 @@
 	          						result.first();
 	          					}
 	      						while(customerTotalR.next()){
-  									System.out.println(customerTotalR.getString("username"));
+  									//System.out.println(customerTotalR.getString("username"));
   									if (customerTotalR.getString("username").equals(result.getString(colName))){
   										totalAmount = customerTotalR.getInt("total");
   										break;
