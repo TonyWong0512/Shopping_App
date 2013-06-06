@@ -122,8 +122,7 @@
 					
 					Statement getOldestDate = conn.createStatement();
 					ResultSet oldDateR = getOldestDate.executeQuery("SELECT month, day FROM TodaysOrders ORDER BY month, day DESC");
-					oldDateR.next();
-					if ( oldDateR.getInt("month") != month || oldDateR.getInt("day") != day){
+					if ( oldDateR.next() && (oldDateR.getInt("month") != month || oldDateR.getInt("day") != day)){
 						Statement clearTodaysOrders = conn.createStatement();
 						clearTodaysOrders.executeUpdate("DELETE FROM TodaysOrders");
 					}

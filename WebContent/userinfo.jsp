@@ -17,6 +17,7 @@
 	    <li><a href="categories.jsp">Add/View Categories</a></li>
 	    <li><a href="products.jsp">Add/View Products</a></li>
 	    <li><a href="sales.jsp">Sales Analytics</a></li>
+	    <li><a href="StateCategorySales.jsp">State/Category LIVE Analytics</a></li>
 	</ul>
 <%
     }

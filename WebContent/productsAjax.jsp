@@ -42,9 +42,9 @@
           ResultSet rs = updateQ.executeQuery("SELECT name, sku, price FROM products WHERE sku=" + request.getParameter("sku"));
           JSONObject result = new JSONObject();
           while (rs.next()){
-      		result.put(rs.getString("name"), rs.getString("name"));
-      		result.put(rs.getString("sku"), rs.getString("sku"));
-      		result.put(rs.getString("price"), rs.getString("price"));
+      		result.put("name", rs.getString("name"));
+      		result.put("sku", rs.getString("sku"));
+      		result.put("price", rs.getString("price"));
       	}
         out.print(result);
       	out.flush();
@@ -56,11 +56,12 @@
           // Create the prepared statement and use it to
           // DELETE students FROM the Students table.
            PreparedStatement statement = conn
-              .prepareStatement("DELETE FROM products WHERE id = ?");
+              .prepareStatement("DELETE FROM products WHERE sku = ?");
 
-          statement.setInt(1, Integer.parseInt(request.getParameter("id")));
+          statement.setInt(1, Integer.parseInt(request.getParameter("sku")));
           int rowCount = statement.executeUpdate();
           if ( rowCount > 0 ){
+        	  System.out.println("INSIDE DELETE");
         	  JSONObject result = new JSONObject();
         	  result.put("success", "true");
         	  out.print(result);
@@ -81,6 +82,7 @@
 		  
           ResultSet result = statement.executeQuery("SELECT id FROM categories WHERE name='"+ request.getParameter("category") + "'");
           if (result.next()){
+        	    System.out.println("LOLOL");
 	            int categoryId = result.getInt("id");
 	            
 	            // Create the prepared statement and use it to
@@ -98,11 +100,12 @@
 	            ResultSet rs = updateQ.executeQuery("SELECT name, sku, price FROM products WHERE sku=" + request.getParameter("sku"));
 	            JSONObject resultJSON = new JSONObject();
 	            while (rs.next()){
-	        		resultJSON.put(rs.getString("name"), rs.getString("name"));
-	        		resultJSON.put(rs.getString("sku"), rs.getString("sku"));
-	        		resultJSON.put(rs.getString("price"), rs.getString("price"));
+	        		resultJSON.put("name", rs.getString("name"));
+	        		resultJSON.put("sku", rs.getString("sku"));
+	        		resultJSON.put("price", rs.getString("price"));
 	        	}
-	          out.print(result);
+	            System.out.println(resultJSON);
+	          out.print(resultJSON);
 	        	out.flush();
           }
 	
