@@ -1,14 +1,14 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <%-- Import the java.sql package --%>
 <%@ page import="java.sql.*"%>
+<%@ page import="org.postgresql.util.*" %>
 <!--  Include the UserInfo page -->
 <jsp:include page="userinfo.jsp" />
 <title>Products Page</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> 
 </head>
 <body>
 
@@ -21,7 +21,7 @@
      ResultSet result = null;
      
      try {
-         if (session.getAttribute("role").equals("Owner")) {
+         if (session.getAttribute("role") != null && session.getAttribute("role").equals("Owner")) {
          // Registering Postgresql JDBC driver with the DriverManager
          Class.forName("org.postgresql.Driver");
 
@@ -80,7 +80,7 @@
 		<label>Price: <input type="text" name="price" value="" /></label>
 		<br />
 		<input type="hidden" name="action" value="insertProduct" />
-		<input type="submit" value="Add Product" />
+		<input type="button" value="Add Product" />
 	</form>
            
     <%
@@ -132,15 +132,16 @@
     	          	<%    	          			
     	          		}
     	          		while (result.next()){
+    	          			PGmoney priceObj = new PGmoney(result.getString("price"));
     	          	%>
     	          	<form action="products.jsp" method="POST">
-                    <input type="hidden" name="id" value="<%=result.getInt("id")%>"/>
     	          		<tr>
     	          			<td><input name="name" value='<%=result.getString("name")%>'></td>
     	          			<td><input name="sku" value='<%=result.getInt("sku")%>'></td>
-    	          			<td><input name="price" value='<%=result.getDouble("price")%>'></td>
-    	          			<td><input type="submit" name="action" value="Update"></td>
-			               	<td><input type="submit" name="action" value="Delete"/></td>
+    	          			<td><input name="price" value='<%=priceObj.val%>'></td>
+    	          			<td><input type="button" name="action" value="Update" class="update" /></td>
+			               	<td><input type="button" name="action" value="Delete" class ="delete" /></td>
+			               	<td><input type="hidden" name="id" value="<%=result.getInt("id")%>"/></td>
 			             </tr>
     	          	</form>	
     	          	<%	
@@ -153,44 +154,7 @@
     		  }
     	  }
     	/***************** End Displaying Table of Products *********************/
-    	/****************** Begin Update and Delete For Table of Products ****************/
-    	String action = request.getParameter("action");
-    	  if ( action != null && action.equals("Update") ){
-    		// Begin transaction
-              conn.setAutoCommit(false);
 
-              // Create the prepared statement and use it to
-              // UPDATE student values in the Students table.
-              PreparedStatement statement = conn
-                  .prepareStatement("UPDATE products SET name = ?, sku = ?, "
-                      + "price =" + request.getParameter("price") + "WHERE id = ?");
-
-              statement.setString(1, request.getParameter("name"));
-              statement.setInt(2, Integer.parseInt(request.getParameter("sku")));
-              //statement.setString(3, request.getParameter("price"));
-              statement.setInt(3, Integer.parseInt(request.getParameter("id")));
-              int rowCount = statement.executeUpdate();
-    		  
-    	  }
-    	  else if ( action != null && action.equals("Delete") ){
-    		// Begin transaction
-              conn.setAutoCommit(false);
-
-              // Create the prepared statement and use it to
-              // DELETE students FROM the Students table.
-               PreparedStatement statement = conn
-                  .prepareStatement("DELETE FROM products WHERE id = ?");
-
-              statement.setInt(1, Integer.parseInt(request.getParameter("id")));
-              int rowCount = statement.executeUpdate();
-
-    	  }
-    	
-    	
-    	
-    	
-    	
-    	/******************** End Update and Delete for Table of Products *************/
     %>
     <!--  Search Box -->
     <form action="products.jsp" method="POST">
@@ -237,9 +201,69 @@
         }
     }
     %>			
+	<script type="text/javascript">
+		$(".update").bind("click", function(){
+			var name = $(this).parent().siblings().children('[name="name"]').attr("value");
+			var sku = $(this).parent().siblings().children('[name="sku"]').attr("value");
+			var price = $(this).parent().siblings().children("[name='price']").attr("value");
+			var id = $(this).parent().siblings().children("[name='id']").attr("value");
+			var dataStr = "name=" + name + "&sku=" + sku + "&price=" + price + "&id=" + id + "&action=Update";
+			console.log(dataStr);
+			
+			$.ajax({
+				type: "POST",
+				url: "productsAjax.jsp",
+				data: dataStr,
+	  			  beforeSend:function(){
+	  				//Update Stats
+	  				console.log('Request Sent');
+	  			  },
+	  			  success:function(result){
+	  				console.log("SUCESS");
+	  				var response = $.parseJSON(result);
 
+	  				$(this).parent().siblings().children("[name='name']").attr("value", response["name"] );
+	  				$(this).parent().siblings().children("[name='sku']").attr("value", response["sku"]);
+	  				$(this).parent().siblings().children("[name='price']").attr("value", response["price"]);
+	  			  },
+	  			  error:function(){
+	  				// Failed request
+	  				console.log("FAIL");
+	  			  }	
+			});
+		});
+		$(".insertProduct").bind("click", function(){
+			var name = $(this).parent().siblings().children('[name="name"]').attr("value");
+			var sku = $(this).parent().siblings().children('[name="sku"]').attr("value");
+			var price = $(this).parent().siblings().children("[name='price']").attr("value");
+			var id = $(this).parent().siblings().children("[name='id']").attr("value");
+			var dataStr = "name=" + name + "&sku=" + sku + "&price=" + price + "&id=" + id + "&action=Update";
+			console.log(dataStr);
+			
+			$.ajax({
+				type: "POST",
+				url: "productsAjax.jsp",
+				data: dataStr,
+	  			  beforeSend:function(){
+	  				//Update Stats
+	  				console.log('Request Sent');
+	  			  },
+	  			  success:function(result){
+	  				console.log("SUCESS");
+	  				var response = $.parseJSON(result);
 
-    
-    
+	  				$(this).parent().siblings().children("[name='name']").attr("value", response["name"] );
+	  				$(this).parent().siblings().children("[name='sku']").attr("value", response["sku"]);
+	  				$(this).parent().siblings().children("[name='price']").attr("value", response["price"]);
+	  			  },
+	  			  error:function(){
+	  				// Failed request
+	  				console.log("FAIL");
+	  			  }	
+			});
+		});
+	
+	
+	</script>
 </body>
 </html>
