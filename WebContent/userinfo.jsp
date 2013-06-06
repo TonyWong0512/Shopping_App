@@ -1,5 +1,9 @@
+<%@page import="java.util.*" %>
 <% 
 	application.setAttribute("database","shopping");
+    if ( application.getAttribute("todaysOrderChanged") == null ){
+    	application.setAttribute("todaysOrderChanged", new ArrayList<String>());
+    }
 	String user = (String) session.getAttribute("user");
     if (user != null){
       out.println("Hello " + user);

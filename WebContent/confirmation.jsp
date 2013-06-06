@@ -114,11 +114,24 @@
 					insertIntoPPC.setInt(10, (int) price);
 					insertIntoPPC.executeUpdate();
 					
+					ArrayList<String> arr = (ArrayList<String>) application.getAttribute("todaysOrderChanged");
+					if (arr.indexOf(result.getString("category")) == -1 ){
+						arr.add(result.getString("category"));
+						application.setAttribute("todaysOrderChanged", arr);
+					}
+					
+					Statement getOldestDate = conn.createStatement();
+					ResultSet oldDateR = getOldestDate.executeQuery("SELECT month, day FROM TodaysOrders ORDER BY month, day DESC");
+					oldDateR.next();
+					if ( oldDateR.getInt("month") != month || oldDateR.getInt("day") != day){
+						Statement clearTodaysOrders = conn.createStatement();
+						clearTodaysOrders.executeUpdate("DELETE FROM TodaysOrders");
+					}
 				    try{
 				    	Statement getTotal = conn.createStatement();
 				    	ResultSet rs = getTotal.executeQuery("SELECT total FROM TodaysOrders WHERE category='" + result.getString("category") + "' AND state='"+ result.getString("state") +"'");
 				    	rs.next();
-				    	double newTotal = rs.getDouble("total") + total; 
+				    	double newTotal = rs.getDouble("total") + totalCost; 
 				    	PreparedStatement insertIntoTodaysOrders = conn.prepareStatement("UPDATE TodaysOrders SET total= ? WHERE category='" + result.getString("category") + "' AND state='"+ result.getString("state") +"'");
 				    	insertIntoTodaysOrders.setDouble(1, newTotal);
 				    	insertIntoTodaysOrders.executeUpdate();
@@ -129,8 +142,9 @@
 						insertIntoTodaysOrders.setString(2, result.getString("state"));
 						insertIntoTodaysOrders.setInt(3, day);
 						insertIntoTodaysOrders.setInt(4, month);
-						insertIntoTodaysOrders.setDouble(5, price);
+						insertIntoTodaysOrders.setDouble(5, totalCost);
 						insertIntoTodaysOrders.executeUpdate();
+						
 				    }
 					
 			}

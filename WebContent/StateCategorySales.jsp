@@ -19,7 +19,7 @@
     			  data: "category=" + category,
     			  beforeSend:function(){
     				//Update Stats
-    				console.log('Request Sent');
+    				//console.log('Request Sent');
     			  },
     			  success:function(result){
     			  
@@ -32,15 +32,16 @@
     				  $("#" + category + " ." + keyStr).html("$" + response[keyStr]);
     				  i--;
     			  }
-    			  console.log(Object.keys(response)[0]);
+    			  //console.log(Object.keys(response)[0]);
     			  	
     			  },
     			  error:function(){
     				// Failed request
-    				$('#status').html('Oops! Error.');
+    				console.log("FAIL")
     			  }
     			});
     	}
+    	
     </script>
 </head>
 <body>
@@ -117,6 +118,7 @@
 	        		}
 	        	%>
           	</table>
+          	
     <% 
             
             // Commit transaction
@@ -157,6 +159,19 @@
         }
     }
     %>  
-
+	<script type="text/javascript">
+		<% categoriesR.beforeFirst(); 
+			while (categoriesR.next()){
+				%>updateTable("<%=categoriesR.getString("name")%>");<%
+			}%>
+			function getChanges(){
+				<% 
+				categoriesR.beforeFirst(); 
+				while (categoriesR.next()){
+					%>updateTable("<%=categoriesR.getString("name")%>");<%
+	    	}%>
+			}
+			setInterval(getChanges,2000);
+	</script>
 </body>
 </html>

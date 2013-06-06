@@ -98,7 +98,6 @@
     	          	
     	          	<%    	          			
     	          		while (rs.next()){
-    	          			System.out.println(rs.getString("price"));
     	          	%>
     	          	<form action="products_order.jsp" method="POST">
     	          		<tr>
