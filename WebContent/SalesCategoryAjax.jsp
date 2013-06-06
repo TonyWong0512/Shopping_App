@@ -1,5 +1,5 @@
 <%@page import="java.util.*" %>
-<%@page import="org.json.simple.JSONObject" %>
+<%@ page import="org.json.simple.JSONObject" %>
 <%@ page import="org.postgresql.util.*" %>
 <%@ page import="java.sql.*"%>
 <%
@@ -19,20 +19,17 @@
         "user=postgres&password=postgres");
     
     conn.setAutoCommit(false);
-    
+
 	JSONObject result = new JSONObject();
 	Statement getSales = conn.createStatement();
-	String getSalesQ = "SELECT name, SUM(totalCost) " +
-			"FROM ( " +
-				 	"SELECT s.state, s.day, s.month, s.totalCost, c.name, s.state " + 
-				 	"FROM SalesByDate AS s, Categories as c, Products as p WHERE s.state='" + request.getParameter("state") + "' " + 
-				 	" AND s.month=" + month + " AND s.day=" + day + " AND p.category=c.id" + 
-				 ") as lol " +
-			"GROUP BY name ORDER BY name ASC";
+	String getSalesQ = "SELECT state, total " +
+			"FROM todaysorders " + 
+			"WHERE category = '" + request.getParameter("category")  +"' " +
+			"ORDER BY category ASC";
 	//System.out.println(getSalesQ);
 	ResultSet rs = getSales.executeQuery(getSalesQ);
 	while (rs.next()){
-		result.put(rs.getString("name"), rs.getString("sum"));
+		result.put(rs.getString("state"), rs.getString("total"));
 	}
 	out.print(result);
 	out.flush();

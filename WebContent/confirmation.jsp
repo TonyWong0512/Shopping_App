@@ -113,6 +113,26 @@
 					insertIntoPPC.setString(9, result.getString("state"));
 					insertIntoPPC.setInt(10, (int) price);
 					insertIntoPPC.executeUpdate();
+					
+				    try{
+				    	Statement getTotal = conn.createStatement();
+				    	ResultSet rs = getTotal.executeQuery("SELECT total FROM TodaysOrders WHERE category='" + result.getString("category") + "' AND state='"+ result.getString("state") +"'");
+				    	rs.next();
+				    	double newTotal = rs.getDouble("total") + total; 
+				    	PreparedStatement insertIntoTodaysOrders = conn.prepareStatement("UPDATE TodaysOrders SET total= ? WHERE category='" + result.getString("category") + "' AND state='"+ result.getString("state") +"'");
+				    	insertIntoTodaysOrders.setDouble(1, newTotal);
+				    	insertIntoTodaysOrders.executeUpdate();
+					}
+				    catch(SQLException e){
+				    	PreparedStatement insertIntoTodaysOrders = conn.prepareStatement("INSERT INTO TodaysOrders(category, state, day, month, total) VALUES(?,?,?,?,?)");
+						insertIntoTodaysOrders.setString(1, result.getString("category"));
+						insertIntoTodaysOrders.setString(2, result.getString("state"));
+						insertIntoTodaysOrders.setInt(3, day);
+						insertIntoTodaysOrders.setInt(4, month);
+						insertIntoTodaysOrders.setDouble(5, price);
+						insertIntoTodaysOrders.executeUpdate();
+				    }
+					
 			}
 			/* UPDATING PRECOMPUTED TABLE  
 			//Creating TopProducts and TopCustomer Tables

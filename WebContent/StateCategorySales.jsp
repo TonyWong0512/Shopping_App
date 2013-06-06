@@ -10,6 +10,38 @@
 <!--  Include the UserInfo page -->
 <jsp:include page="userinfo.jsp" />
 <title>Sales Page</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> 
+    <script type="text/javascript">
+    	function updateTable( category ){
+    		$.ajax({
+    			  type: 'POST',
+    			  url: "SalesCategoryAjax.jsp" ,
+    			  data: "category=" + category,
+    			  beforeSend:function(){
+    				//Update Stats
+    				console.log('Request Sent');
+    			  },
+    			  success:function(result){
+    			  
+    			  var response = $.parseJSON(result);
+    			  
+    			  var i = Object.keys(response).length-1;
+    			  while ( i >= 0 ){
+    				  var keyStr = Object.keys(response)[i];
+    				  //console.log("#" + category + " ." + keyStr);
+    				  $("#" + category + " ." + keyStr).html("$" + response[keyStr]);
+    				  i--;
+    			  }
+    			  console.log(Object.keys(response)[0]);
+    			  	
+    			  },
+    			  error:function(){
+    				// Failed request
+    				$('#status').html('Oops! Error.');
+    			  }
+    			});
+    	}
+    </script>
 </head>
 <body>
 		<%-- -------- Open Connection Code -------- --%>
@@ -19,12 +51,7 @@
      Statement query = null;
      Statement query2 = null;
      Statement query3 = null;
-     ResultSet result = null;
-     ResultSet result2 = null;
-     ResultSet tableFillResult = null;
-     ResultSet rs = null;
-     ResultSet productSalesR = null;
-     ResultSet customerTotalR = null;
+     ResultSet categoriesR = null;
      
      try {
     	 //if (session.getAttribute("role") != null && session.getAttribute("role").equals("Owner")){
@@ -58,24 +85,37 @@
     <%
     
         // Check if an insertion is requested
-        /******************************* BEGIN IF CUSTOMERS ARE CHOSEN *********************************/
-        if ( getNext != null || (action != null && action.equals("yes") )) {
         	//System.out.println("In Sign up");
             // Begin transaction
             conn.setAutoCommit(false);
 
             // Create the prepared statement and use it to
             // INSERT student values INTO the students table.
-            
-            
+            Statement categoriesQ = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            categoriesR = categoriesQ.executeQuery("SELECT name FROM categories ORDER BY name ASC");
+            String[] states = {"AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA", "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"};
      %>
             
             <table border="1">
-          		          		
-          		<% 
-          		
+            	<tr>
+            		<th>Categories</th>	          		
+          	<% 
+          			for ( int i = 0 ; i < states.length; ++i ){
+          				%> <th><%=states[i]%></th><%
+          			}
           	%>
-
+				</tr>
+				<% 
+	        		while ( categoriesR.next() ){
+	        			%> <tr id="<%=categoriesR.getString("name")%>">
+	        				<td><%=categoriesR.getString("name")%></td>
+	        			<%
+	        			for ( int i = 0; i < states.length; ++i ){ //individual cells with totals
+	        				%><td class="<%=states[i]%>">0</td><%
+	        			}
+	        			%></tr><%
+	        		}
+	        	%>
           	</table>
     <% 
             
@@ -87,13 +127,9 @@
     <%
         // Close the Connection
         	conn.close();
-        }
        }
     	 
-    	 else{
-         	out.println("Sorry, you are not allowed access to this page.");
-         }
-        /******************** END IF CUSTOMERS ARE CHOSEN *************************/
+    /******************** END IF CUSTOMERS ARE CHOSEN *************************/
     %>
     <%-- -------- Error catching ---------- --%>
     <%
@@ -120,7 +156,7 @@
             conn = null;
         }
     }
-    %>   
-    
+    %>  
+
 </body>
 </html>
