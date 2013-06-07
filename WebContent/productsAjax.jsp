@@ -28,20 +28,22 @@
 
           // Create the prepared statement and use it to
           // UPDATE student values in the Students table.
+          System.out.println("INSIDE UPDATE" + request.getParameter("name") + request.getParameter("sku") + request.getParameter("price") + request.getParameter("id"));
           PreparedStatement statement = conn
               .prepareStatement("UPDATE products SET name = ?, sku = ?, "
-                  + "price =" + request.getParameter("price") + "WHERE id = ?");
+                  + "price =" + request.getParameter("price") + "WHERE sku = ?");
 
           statement.setString(1, request.getParameter("name"));
           statement.setInt(2, Integer.parseInt(request.getParameter("sku")));
           //statement.setString(3, request.getParameter("price"));
-          statement.setInt(3, Integer.parseInt(request.getParameter("id")));
+          statement.setInt(3, Integer.parseInt(request.getParameter("sku")));
           int rowCount = statement.executeUpdate();
-          
+          System.out.println("INSIDE UPDATE" + rowCount);
           Statement updateQ = conn.createStatement();
           ResultSet rs = updateQ.executeQuery("SELECT name, sku, price FROM products WHERE sku=" + request.getParameter("sku"));
           JSONObject result = new JSONObject();
           while (rs.next()){
+        	 //System.out.println("INSIDE UPDATE" + rs.getString("name") + rs.getString("sku") + rs.getString("price"));
       		result.put("name", rs.getString("name"));
       		result.put("sku", rs.getString("sku"));
       		result.put("price", rs.getString("price"));
@@ -57,15 +59,16 @@
           // DELETE students FROM the Students table.
            PreparedStatement statement = conn
               .prepareStatement("DELETE FROM products WHERE sku = ?");
-
+		  System.out.println(request.getParameter("sku"));
           statement.setInt(1, Integer.parseInt(request.getParameter("sku")));
           int rowCount = statement.executeUpdate();
           if ( rowCount > 0 ){
         	  System.out.println("INSIDE DELETE");
         	  JSONObject result = new JSONObject();
+        	  result.put("sku", request.getParameter("sku"));
         	  result.put("success", "true");
         	  out.print(result);
-            	out.flush();
+              out.flush();
           }
 	  }
 	  else if (action != null && action.equals("insertProduct")) {

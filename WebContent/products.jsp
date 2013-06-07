@@ -135,7 +135,7 @@
     	          			PGmoney priceObj = new PGmoney(result.getString("price"));
     	          	%>
     	          	<form action="products.jsp" method="POST">
-    	          		<tr>
+    	          		<tr id="<%=result.getInt("sku")%>">
     	          			<td><input name="name" value='<%=result.getString("name")%>'></td>
     	          			<td><input name="sku" value='<%=result.getInt("sku")%>'></td>
     	          			<td><input name="price" value='<%=priceObj.val%>'></td>
@@ -202,6 +202,56 @@
     }
     %>			
 	<script type="text/javascript">
+		function addInsertListeners(){
+		$(".insertProduct").bind("click", function(){
+			console.log($(this).siblings())
+			var name = $(this).siblings().children('[name="product_name"]').attr("value");
+			var sku = $(this).siblings().children('[name="sku"]').attr("value");
+			var category = $(this).siblings().children("[name='category']").attr("value");
+			var price = $(this).siblings().children("[name='price']").attr("value");
+			var dataStr = "product_name=" + name + "&sku=" + sku + "&price=" + price + "&category=" + category + "&action=insertProduct";
+			console.log(dataStr);
+			
+			$.ajax({
+				type: "POST",
+				url: "productsAjax.jsp",
+				data: dataStr,
+				datatype: "json",
+	  			  beforeSend:function(){
+	  				//Update Stats
+	  				console.log('Request Sent');
+	  			  },
+	  			  success:function(result){
+	  				console.log("SUCESS");
+	  				
+	  				//var response = result;
+	  				var response = $.parseJSON(result);
+	  				//console.log(response);
+	  				
+	  				var formStr = "<tr id='"+ response["sku"] +"'>" +
+          			"<td><input name=\"name\" value='"+ response["name"] +"'></td>" +
+          			"<td><input name=\"sku\" value='"+ response["sku"] +"'></td>" +
+          			"<td><input name=\"price\" value='"+ response["price"] +"'></td>" +
+          			"<td><input type=\"button\" name=\"action\" value=\"Update\" class=\"update\" /></td>" +
+	               	"<td><input type=\"button\" name=\"action\" value=\"Delete\" class =\"delete\" /></td>" +
+	               	"<td><input type=\"hidden\" name=\"id\" value='"+ response["sku"] +"'/></td>" +
+	             "</tr>";
+	             	//console.log(formStr);
+	  				$("#productsTable").append($(formStr));
+	  				addUpdateListeners();
+	  				addDeleteListeners();
+	  				//$(this).parent().siblings().children("[name='name']").attr("value", response["name"] );
+	  				//$(this).parent().siblings().children("[name='sku']").attr("value", response["sku"]);
+	  				//$(this).parent().siblings().children("[name='price']").attr("value", response["price"]);
+	  			  },
+	  			  error:function(){
+	  				// Failed request
+	  				console.log("FAIL");
+	  			  }	
+			});
+		});
+		}
+		function addUpdateListeners(){
 		$(".update").bind("click", function(){
 			var name = $(this).parent().siblings().children('[name="name"]').attr("value");
 			var sku = $(this).parent().siblings().children('[name="sku"]').attr("value");
@@ -232,52 +282,8 @@
 	  			  }	
 			});
 		});
-		$(".insertProduct").bind("click", function(){
-			console.log($(this).siblings())
-			var name = $(this).siblings().children('[name="product_name"]').attr("value");
-			var sku = $(this).siblings().children('[name="sku"]').attr("value");
-			var category = $(this).siblings().children("[name='category']").attr("value");
-			var price = $(this).siblings().children("[name='price']").attr("value");
-			var dataStr = "product_name=" + name + "&sku=" + sku + "&price=" + price + "&category=" + category + "&action=insertProduct";
-			console.log(dataStr);
-			
-			$.ajax({
-				type: "POST",
-				url: "productsAjax.jsp",
-				data: dataStr,
-				datatype: "json",
-	  			  beforeSend:function(){
-	  				//Update Stats
-	  				console.log('Request Sent');
-	  			  },
-	  			  success:function(result){
-	  				console.log("SUCESS");
-	  				
-	  				//var response = result;
-	  				var response = $.parseJSON(result);
-	  				//console.log(response);
-	  				
-	  				var formStr = "<tr>" +
-          			"<td><input name=\"name\" value='"+ response["name"] +"'></td>" +
-          			"<td><input name=\"sku\" value='"+ response["sku"] +"'></td>" +
-          			"<td><input name=\"price\" value='"+ response["price"] +"'></td>" +
-          			"<td><input type=\"button\" name=\"action\" value=\"Update\" class=\"update\" /></td>" +
-	               	"<td><input type=\"button\" name=\"action\" value=\"Delete\" class =\"delete\" /></td>" +
-	               	"<td><input type=\"hidden\" name=\"id\" value='"+ response["sku"] +"'/></td>" +
-	             "</tr>";
-	             	//console.log(formStr);
-	  				$("#productsTable").append(formStr);
-	  						
-	  				//$(this).parent().siblings().children("[name='name']").attr("value", response["name"] );
-	  				//$(this).parent().siblings().children("[name='sku']").attr("value", response["sku"]);
-	  				//$(this).parent().siblings().children("[name='price']").attr("value", response["price"]);
-	  			  },
-	  			  error:function(){
-	  				// Failed request
-	  				console.log("FAIL");
-	  			  }	
-			});
-		});
+		}
+	function addDeleteListeners(){
 	$(".delete").bind("click", function(){
 		var sku = $(this).parent().siblings().children('[name="sku"]').attr("value");
 		$.ajax({
@@ -296,11 +302,7 @@
 					var response = $.parseJSON(result);
 					console.log(response);
 					if ( response != null && response["success"] == "true"){
-						//console.log($(this).parent().parent.remove());
-						console.log("LOLLOL");
-						$(this).closest("tr").css("display", "none");
-						//$("#productsTable").remove("#toBeRemoved");
-						//$(this).parent().parent.css("display", "none");
+						$("#" + response["sku"]).remove();
 					}
 	
 				  },
@@ -310,7 +312,10 @@
 				  }	
 			});
 		});
-	
+	}
+	addInsertListeners();
+	addDeleteListeners();
+	addUpdateListeners();
 	</script>
 </body>
 </html>
